@@ -1,5 +1,5 @@
 ############################################################
-# Poker Bot App Practice Lab
+# Poker Bot App Practice Lab - Ruth Hotaling
 # Mathematics of Poker
 #
 # Format: R script with commented instructions
@@ -87,6 +87,7 @@ poker_load_all(include_demos = TRUE)
 #
 # Question:
 # What minimum equity do you need for a call to break even?
+### We need 0.25 minimum equity (P/P+B)
 
 pot_before_call <- 120
 call_amount <- 40
@@ -108,7 +109,7 @@ bet_amount <- 75
 break_even_fold_prob_bluff(pot_before_bet, bet_amount)
 
 # Write your response here:
-#
+### Your opponent needs a fold frequency of 0.4285714
 #
 
 
@@ -135,8 +136,8 @@ ev_call(equity = 0.40, call_amount = 50, pot_before_call = 150)
 # calculation above.
 #
 # Write your response here:
-#
-#
+####The call becomes profitable at equity 0.25
+###Thus the pot odds give us the break-even equity (0.25)
 
 
 # 3. Regret as a way to compare actions
@@ -153,8 +154,9 @@ ev_regret(ev_options, chosen_action = "call")
 # What does that regret mean in words?
 
 # Write your response here:
-#
-#
+###The regret of calling is 5
+###This means that the player should've called more often because it's positive regret. But they didn't make bad decisions.
+
 
 #Challenge: Create a new function mixed_regret which calculutes the regret of a mixed strategy for a given chosen_action
 
@@ -214,8 +216,12 @@ holdem_equity_mc_fast(
 )
 
 # Write your response here:
-#
-#
+##### Equity when n_sims = 500: 1) 0.837; 2) 0.163
+###             n_sims = 50: 1) 0.88; 2) 0.12
+###             n_sims = 1000: 1) 0.831; 2) 0.169
+###             n_sims = 50000: 1) 0.82497; 2) 0.17503
+###As the number of simulations increase, the equity for player 1 gets marginally smaller and the equity for player 2 gets marginally larger.
+###The equities themselves seem to stabilize, giving us a better picture of who is more likely to win. The numbers are closer together as the number of simulations increase.
 
 
 # 5. Equity on a partial board
@@ -240,8 +246,8 @@ holdem_equity_mc_fast(
 # Use poker language if helpful, but be mathematically precise.
 #
 # Write your response here:
-#
-#
+###Player 1's equity increases to 1 because they have pocket aces, which will almost always beat pocket kings on this board
+
 
 
 # 6. Weighted ranges
@@ -271,8 +277,8 @@ sum(example_range$weights)
 # possible hand as equally likely?
 #
 # Write your response here:
-#
-#
+###Weighted ranges may be more realistic because players do not choose all hands with equal frequency. Their choices depend on
+###strategy, position, and their style of play.
 
 
 # 7. Build your own simple range
@@ -321,8 +327,26 @@ holdem_equity_mc_fast(list(hero_hand, opponent_range), n_sims = 500)
 # Then compare the size and weight distribution of the two ranges.
 # After that, test range-versus-range equity on various boards.
 
-tight_range <- strong_range
-loose_range <- strong_range
+tight_range <- new_range_holdem(
+  data.frame(
+    c1 = c("Ah", "Kh", "Qh", "Jh"),
+    c2 = c("Ad", "Kd", "Qd", "Jd"),
+    w  = c(5, 4, 3, 2)
+  ),
+  label = "Tight range"
+)
+
+loose_range <- new_range_holdem(
+  data.frame(
+    c1 = c("Ah", "Kh", "Qh", "Jh", "Th", "9h"),
+    c2 = c("Ad", "Kd", "Qd", "Jd", "Td", "9d"),
+    w  = c(3, 3, 2, 2, 1, 1)
+  ),
+  label = "Loose range"
+)
+
+#tight_range <- strong_range
+#loose_range <- strong_range
 
 range_size(tight_range)
 range_size(loose_range)
@@ -336,8 +360,18 @@ loose_range$combos
 holdem_equity_mc_fast(list(tight_range, loose_range), n_sims = 500)
 
 # Write your response here:
-#
-#
+###Tight range has fewer combinations and focuses on strong hands
+###Loose range has more combinations and spreads weight across many hands
+###Tight range has a higher equity due to its stronger hands
+
+##Try with a different board that will favor a loose range:
+loose_board <- data.frame(
+  rank = c("9", "T", "J"),
+  suit = c("h", "d", "c"),
+  stringsAsFactors = FALSE
+)
+
+holdem_equity_mc_fast(list(tight_range, loose_range), board = loose_board, n_sims = 500)
 
 
 # 8. Ranges from strings
@@ -371,9 +405,26 @@ flop_board <- data.frame(
 holdem_equity_mc_fast(list(r1, r2), board_df = flop_board, n_sims = 500)
 
 # Write your response here:
-#
-#
 
+flop_board2 <- data.frame(
+  rank = c("J", "T", "7"),
+  suit = c("h", "d", "c"),
+  card = c("Jh", "Td", "7c"),
+  stringsAsFactors = FALSE
+)
+
+expand_range_string_to_classes("99-AA")
+expand_range_string_to_classes("73s-76s")
+expand_range_string_to_classes("Q2o-QTo")
+
+expand_range_string_to_classes("22-55")
+expand_range_string_to_classes("52o-54o")
+expand_range_string_to_classes("A2s-AKs")
+
+r3 <- new_range_holdem_from_string("99-AA, 73s-76s, Q2o-QTo")
+r4 <- new_range_holdem_from_string("22-55, 52o-54o, A2s-AKs")
+
+holdem_equity_mc_fast(list(r3, r4), board_df = flop_board2, n_sims = 500)
 
 # 9. Board texture features
 #
@@ -393,8 +444,9 @@ board_features(flop_df)
 # whether to bet the flop?
 #
 # Write your response here:
-#
-#
+###Some useful pieces of this output are connectivity which could indicate a straight, paired vs. unpaired boards,
+###high card presence, and the two-tone output which can indicate if a flush is possible.
+###All of the outputs are useful to understand and decide on betting.
 
 
 ############################################################
@@ -436,17 +488,16 @@ demo_show_bot_input(tourn)
 
 # Task 10
 # Find and record the following pieces of information inside
+
+#Write your response here:
 # bot_input_example:
-# - your hole cards,
-# - the current pot,
-# - the current street,
-# - the legal actions,
-# - your current stack,
-# - the public information about the other players.
-#
-# Write your response here:
-#
-#
+# - your hole cards: Td, 8c
+# - the current pot: 150
+# - the current street: preflop
+# - the legal actions: fold, call, raise
+# - your current stack: 1000
+# - the public information about the other players: their seat position, stack size, if they are active or if they have folded,
+#if they are all in, how much they've committed this round and this hand, the blind sizes. Their hold cards are not included.
 
 
 # 11. Explore the legal action structure
@@ -460,8 +511,8 @@ bot_input_example$legal_actions$actions
 # before returning an action?
 #
 # Write your response here:
-#
-#
+###It's important for a bot to check which actions are legal before returning an action because an illegal action could cause
+###the bot to return an error or behave unpredictably. Check if actions are legal allows the bot to produce valid decisions.
 
 
 ############################################################
@@ -484,8 +535,9 @@ bot_input_example$legal_actions$actions
 # 3. What does it do after the flop?
 #
 # Write your response here:
-#
-#
+###A premium hand is either paired, contains only Q's and above, or has one ace and the other card is at least a Ten
+###If the bot has a premium hand, it plays aggressively. First tries to raise, and if not allowed then tries to bet, and if not allowed then tries to go all-in. If none of these are possible, it will call, check, or fold.
+###After the flop the bot become passive and will either check, call, or fold (in that order). It ignores hand strength.
 
 
 # 13. Try a starter template
@@ -570,6 +622,84 @@ lab_bot <- function(bot_input) {
   list(type = "fold")
 }
 
+lab_bot_challenge.14 <- function(bot_input) {
+  legal_types <- bot_input$legal_actions$legal_action_types
+  hole_cards <- bot_input$hole_cards
+  street <- bot_input$street
+  big_blind <- bot_input$big_blind
+  pot <- bot_input$pot
+  current_bet <- bot_input$current_bet
+  committed <- bot_input$committed_this_round
+  board <- bot_input$board
+
+  call_amount <- max(0, current_bet - committed)
+  vals <- sort(hole_rank_values(hole_cards), decreasing = TRUE)
+
+  if (street == "preflop" && length(vals) == 2) {
+    paired <- vals[1] == vals[2]
+    ak <- identical(vals, c(14, 13))
+    aq <- identical(vals, c(14, 12))
+
+    if (paired || ak || aq) {
+      if (bot_has_action(bot_input, "raise")) {
+        return(list(type = "raise", amount = bot_min_raise(bot_input)))
+      }
+      if (bot_has_action(bot_input, "bet")) {
+        return(list(type = "bet", amount = bot_min_bet(bot_input)))
+      }
+    }
+
+    if ("check" %in% legal_types) {
+      return(list(type = "check"))
+    }
+
+    if ("call" %in% legal_types && call_amount <= big_blind) {
+      return(list(type = "call"))
+    }
+
+    return(list(type = "fold"))
+  }
+
+  if ("check" %in% legal_types) {
+    return(list(type = "check"))
+  }
+
+  if ("call" %in% legal_types) {
+
+    # Estimate pot odds
+    threshold <- pot_odds(call_amount, pot)
+
+    villain_range <- new_range_holdem(
+      data.frame(
+        c1 = c("Ah", "Kh", "Qh", "Jh"),
+        c2 = c("Ad", "Kd", "Qd", "Jd"),
+        w  = c(3, 3, 2, 2)
+      ),
+      label = "Default villain range"
+    )
+
+    hero_hand_df <- data.frame(
+      rank = substring(hole_cards, 1, 1),
+      suit = substring(hole_cards, 2, 2),
+      stringsAsFactors = FALSE
+    )
+
+    equity_result <- holdem_equity_mc_fast(
+      list(hero_hand_df, villain_range),
+      board = board,
+      n_sims = 300
+    )
+
+    hero_equity <- equity_result[1]
+
+    if (hero_equity >= threshold) {
+      return(list(type = "call"))
+    }
+  }
+
+  list(type = "fold")
+}
+
 # Task 13
 # Explain the line below in words:
 #
@@ -579,8 +709,8 @@ lab_bot <- function(bot_input) {
 # What is it using that threshold for?
 #
 # Write your response here:
-#
-#
+###The bot is calculating the pot odds which represent the minimum equity that the bot needs in order to make calling the bet profitable. It is calculating the breakeven equity.
+###It is using that threshold to decide if calling is going to be profitable and mathematically justified.
 
 
 # 15. Test your bot on a live input
@@ -588,7 +718,7 @@ lab_bot <- function(bot_input) {
 # Replace one of the bots in the tournament with your new bot.
 
 bot_fns_test <- list(
-  "Lab Bot" = lab_bot,
+  "Lab Bot" = lab_bot_challenge.14,
   "Random Bot" = random_bot,
   "Caller Bot" = always_call_bot
 )
@@ -596,7 +726,7 @@ bot_fns_test <- list(
 tourn2 <- initialize_tournament(
   bot_fns = bot_fns_test,
   player_names = names(bot_fns_test),
-  starting_stack = 1000
+  starting_stack = 500
 )
 
 tourn2 <- initialize_hand(tourn2)
@@ -604,7 +734,7 @@ tourn2 <- post_blinds_and_antes(tourn2)
 
 bot_input_test <- build_bot_input(tourn2)
 demo_show_bot_input(tourn2)
-lab_bot(bot_input_test)
+lab_bot_challenge.14(bot_input_test)
 
 # Task 14
 # Run this section several times by re-initializing the tournament.
@@ -613,8 +743,10 @@ lab_bot(bot_input_test)
 # and one where it folds.
 #
 # Write your response here:
-#
-#
+###Yes, my bot always returns a legal action
+###A situation where my bot raises is preflop when dealt a strong hand (pair, AQ, AK) and raising is allowed.
+###A situation where my bot calls is postflop when there is a bet and calling is allowed and equity is greater than or equal to the pot odds threshold.
+###A situation where by bot folds is if it faces a bet postflop and its equity is lower than the pot odds threshold.
 
 
 # 16. challenge: make the bot more thoughtful
@@ -627,7 +759,7 @@ lab_bot(bot_input_test)
 #
 # A starter idea is below.
 
-lab_bot_v2 <- function(bot_input) {
+lab_bot_v2_starter <- function(bot_input) {
   legal_types <- bot_input$legal_actions$legal_action_types
   board <- bot_input$board
   street <- bot_input$street
@@ -659,12 +791,104 @@ lab_bot_v2 <- function(bot_input) {
   list(type = "fold")
 }
 
+lab_bot_v2 <- function(bot_input) {
+  legal_types <- bot_input$legal_actions$legal_action_types
+  hole_cards <- bot_input$hole_cards
+  board <- bot_input$board
+  street <- bot_input$street
+  pot <- bot_input$pot
+  current_bet <- bot_input$current_bet
+  committed <- bot_input$committed_this_round
+
+  call_amount <- max(0, current_bet - committed)
+
+  vals <- sort(hole_rank_values(hole_cards), decreasing = TRUE)
+
+  if (street == "preflop" && length(vals) == 2) {
+    paired <- vals[1] == vals[2]
+    ak <- identical(vals, c(14, 13))
+    aq <- identical(vals, c(14, 12))
+
+    if (paired || ak || aq) {
+      if ("raise" %in% legal_types) {
+        return(list(type = "raise", amount = bot_min_raise(bot_input)))
+      }
+      if ("bet" %in% legal_types) {
+        return(list(type = "bet", amount = bot_min_bet(bot_input)))
+      }
+    }
+
+    if ("call" %in% legal_types && call_amount <= big_blind) {
+      return(list(type = "call"))
+    }
+
+    if ("check" %in% legal_types) {
+      return(list(type = "check"))
+    }
+
+    return(list(type = "fold"))
+  }
+
+  if (street == "flop" && length(board) == 3) {
+
+    board_df <- parse_cards(board)
+    feats <- board_features(board_df)
+
+    # Compute a simple "texture score"
+    dry_board <- (!feats$two_tone && feats$connectivity <= 1)
+    very_wet  <- (feats$two_tone && feats$connectivity >= 2)
+
+    # If checked to
+    if ("check" %in% legal_types) {
+
+      # Bet dry boards aggressively
+      if (dry_board && "bet" %in% legal_types) {
+        return(list(type = "bet", amount = bot_min_bet(bot_input)))
+      }
+
+      # Check back on wet boards more often
+      return(list(type = "check"))
+    }
+
+    # If facing a bet
+    if ("call" %in% legal_types) {
+
+      threshold <- pot_odds(call_amount, pot)
+
+      # looser calls on dry boards, tighter on wet boards
+      equity_buffer <- if (dry_board) 0.05 else if (very_wet) -0.05 else 0
+
+      hero_equity <- 0.5  # fallback baseline if no equity model used
+
+      if ((hero_equity + equity_buffer) >= threshold) {
+        return(list(type = "call"))
+      }
+    }
+
+    return(list(type = "fold"))
+  }
+
+  if ("check" %in% legal_types) {
+    return(list(type = "check"))
+  }
+
+  if ("call" %in% legal_types) {
+    threshold <- pot_odds(call_amount, pot)
+
+    if (threshold <= 0.25) {
+      return(list(type = "call"))
+    }
+  }
+
+  return(list(type = "fold"))
+}
+
 # Task 15
 # Modify this bot and explain your design choices.
-#
+###Modified bot above
 # Write your response here:
-#
-#
+###My design consisted of the same preflop action from the previous question, utilized board texture to bet aggressively on dry flops,
+###more cautious play on coordinated/two-tone boards, and calls are now slightly adjusted based on texture and not based purely on pot odds.
 
 
 # Demo Tournament with lab_bot
@@ -677,7 +901,7 @@ poker_load_all(include_demos = TRUE, verbose = FALSE)
 
 demo_result <- run_tournament(
   bot_fns = list(
-    lab_bot,
+    lab_bot_v2,
     random_bot,
     always_call_bot,
     passive_bot,
@@ -720,8 +944,9 @@ data.frame(
 # How did the two interact?
 #
 # Write your response here:
-#
-#
+###Calculating pot odds and using that to interpret decisions felt the most clearly mathematical as we I have done that several times in class/in homework.
+###Programming the bots felt the most like programming because of the logic and for loops, and coding syntax, etc.
+###The two interacted by working with each other to create a larger tool for poker.
 
 
 # 18. Limits of the current bots
@@ -729,9 +954,8 @@ data.frame(
 # currently use, but probably should use in a more serious version?
 #
 # Write your response here:
-#
-#
-
+###One important piece of information that a bot could use is accounting for random error or in poker terms, accounting for a player
+###making a rash decision or a decision that isn't necessarily mathematically correct. The bot could choose some things randomly sometimes to account for human behavior.
 
 # 19. Reflection
 # A poker bot acts under uncertainty and with limited information.
@@ -739,5 +963,6 @@ data.frame(
 # model or approximation rather than exact knowledge.
 #
 # Write your response here:
-#
-#
+###The bot had to rely on a model or approximation rather than exact knowledge when dealing with ranges instead of exact hands.
+###If the bot doesn't know other's hands, it has to calculate equity based on ranges, which isn't completely mathematically precise. Especially when dealing with humans.
+
